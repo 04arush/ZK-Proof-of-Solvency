@@ -1,0 +1,17 @@
+# Environment variables (contains private keys)
+.env
+
+# Noir build artifacts
+circuits/inclusion_proof/target/
+circuits/inclusion_proof/proofs/
+circuits/inclusion_proof/Prover.toml
+circuits/inclusion_proof/Verifier.toml
+
+# Foundry build artifacts
+contracts/cache/
+contracts/broadcast/
+contracts/lib/
+contracts/out/
+
+# Node modules
+scripts/node_modules/
