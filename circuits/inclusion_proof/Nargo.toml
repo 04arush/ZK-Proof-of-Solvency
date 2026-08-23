@@ -1,0 +1,6 @@
+[package]
+name = "inclusion_proof"
+type = "bin"
+authors = [""]
+
+[dependencies]
