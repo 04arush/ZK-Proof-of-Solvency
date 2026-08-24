@@ -1,6 +1,5 @@
 global DEPTH: u32 = 2;
 
-// Poseidon2 sponge hash over N field elements: absorb inputs into a 4-element state, return state[0]
 fn poseidon2_hash<let N: u32>(inputs: [Field; N]) -> Field {
     let mut state: [Field; 4] = [0, 0, 0, 0];
     for i in 0..N {
