@@ -1,11 +1,60 @@
-fn main(x: u64, y: pub u64) {
-    assert(x != y);
+global DEPTH: u32 = 2;
+
+// Poseidon2 sponge hash over N field elements: absorb inputs into a 4-element state, return state[0]
+fn poseidon2_hash<let N: u32>(inputs: [Field; N]) -> Field {
+    let mut state: [Field; 4] = [0, 0, 0, 0];
+    for i in 0..N {
+        state[i % 3] += inputs[i];
+        if (i % 3 == 2) | (i == N - 1) {
+            state = std::hash::poseidon2_permutation(state);
+        }
+    }
+    state[0]
+}
+
+fn main(
+    balance: u64,
+    secret: Field,
+    path_hashes: [Field; DEPTH],
+    path_sums: [Field; DEPTH],
+    path_indices: [bool; DEPTH],
+    root_hash: pub Field,
+    root_sum: pub Field
+) {
+    // Constraint 1: recompute the leaf
+    let leaf_hash = poseidon2_hash([secret, balance as Field]);
+
+    // Constraint 2: walk up the Merkle tree
+    let mut current_hash = leaf_hash;
+    let mut current_sum = balance as Field;
+
+    for i in 0..DEPTH {
+        let sibling_hash = path_hashes[i];
+        let sibling_sum = path_sums[i];
+
+        // if path_indices[i] == false: we are left child -> (current, sibling)
+        // if path_indices[i] == true:  we are right child -> (sibling, current)
+        let is_right = path_indices[i] as Field;
+
+        let left_hash = (1 - is_right) * current_hash + is_right * sibling_hash;
+        let left_sum = (1 - is_right) * current_sum + is_right * sibling_sum;
+        let right_hash = (1 - is_right) * sibling_hash + is_right * current_hash;
+        let right_sum = (1 - is_right) * sibling_sum + is_right * current_sum;
+
+        current_hash = poseidon2_hash([left_hash, left_sum, right_hash, right_sum]);
+        current_sum = left_sum + right_sum;
+    }
+
+    // Constraint 3: computed root must match the public input
+    assert(current_hash == root_hash, "Root hash does not match");
+    assert(current_sum == root_sum, "Root sum does not match");
 }
 
 #[test]
-fn test_main() {
-    main(1, 2);
-
-    // Uncomment to make test fail
-    // main(1, 1);
+fn test_leaf_hash_matches_ts() {
+    // hashLeaf(1n, 100n) from poseidon.test.ts printed:
+    // 9326983004124375216551096032771341412132084386804905225430866942582012914771
+    let expected: Field = 9326983004124375216551096032771341412132084386804905225430866942582012914771;
+    let computed = poseidon2_hash([1, 100]);
+    assert(computed == expected, "Poseidon output does not match TypeScript hash. Bug: Hash mismatch");
 }
