@@ -15,3 +15,6 @@ contracts/out/
 
 # Node modules
 scripts/node_modules/
+
+# Code Editor directories and files
+.vscode/
