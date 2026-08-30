@@ -61,7 +61,13 @@ contract ProofOfSolvency {
         publicInputs[0] = claimedRoot;
         publicInputs[1] = bytes32(claimedTotal);
 
-        if (!verifier.verify(proof, publicInputs)) revert InvalidProof();
+        bool ok;
+        try verifier.verify(proof, publicInputs) returns (bool result) {
+            ok = result;
+        } catch {
+            revert InvalidProof();
+        }
+        if (!ok) revert InvalidProof();
         emit SolvencyProven(claimedRoot, claimedTotal, msg.sender);
     }
 }
