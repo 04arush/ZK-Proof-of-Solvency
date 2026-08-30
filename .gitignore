@@ -1,6 +1,9 @@
 # Environment variables (contains private keys)
 .env
 
+# Secret prover hashes
+scripts/witness.json
+
 # Noir build artifacts
 circuits/inclusion_proof/target/
 circuits/inclusion_proof/proofs/
